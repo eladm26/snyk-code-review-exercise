@@ -16,7 +16,9 @@
     "outDir": "dist",
 
     // Build source maps for easier debugging
-    "sourceMap": true
+    "sourceMap": true,
+
+    "esModuleInterop": true
   },
   "include": ["src"]
 }

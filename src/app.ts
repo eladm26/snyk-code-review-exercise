@@ -1,15 +1,28 @@
-import * as express from 'express';
-import { getPackage } from './package';
+import { StatusCodes } from 'http-status-codes';
 
-/**
- * Bootstrap the application framework
- */
+import packageRouter from './routes/packageRouter';
+
+import errorHandlerMiddleware from './middleware/errorHandlerMiddleware';
+
+import express from 'express';
+
 export function createApp(): express.Express {
   const app = express();
 
   app.use(express.json());
 
-  app.get('/package/:name/:version', getPackage);
+  app.use('/api/v1/packages', packageRouter);
+
+  app.use('/api/v1/hello', (req, res) => {
+    console.log('hello');
+    res.status(StatusCodes.OK).json({});
+  });
+
+  app.use('*', (req, res) => {
+    res.status(StatusCodes.NOT_FOUND).json({ msg: 'not found' });
+  });
+
+  app.use(errorHandlerMiddleware);
 
   return app;
 }

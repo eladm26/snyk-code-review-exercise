@@ -1,78 +1,93 @@
-import got from 'got';
-import { Server } from 'http';
-import { createApp } from '../src/app';
+import * as dotenv from 'dotenv';
+dotenv.config();
 
-describe('/package/:name/:version endpoint', () => {
+import { createApp } from '../src/app';
+import { Server } from 'http';
+import request from 'supertest';
+import e from 'express';
+import got from 'got';
+import { NPMPackage } from '../src/utils/types';
+import { mockedNPMPackages } from './mock-data/packages-data';
+
+jest.mock('got');
+
+const mockedResponse = {
+  dependencies: {
+    'loose-envify': {
+      version: '1.4.0',
+      dependencies: {
+        'js-tokens': {
+          version: '4.0.0',
+          dependencies: {},
+        },
+      },
+    },
+    'object-assign': {
+      version: '4.1.1',
+      dependencies: {},
+    },
+    'prop-types': {
+      version: '15.8.1',
+      dependencies: {
+        'object-assign': {
+          version: '4.1.1',
+          dependencies: {},
+        },
+        'loose-envify': {
+          version: '1.4.0',
+          dependencies: {
+            'js-tokens': {
+              version: '4.0.0',
+              dependencies: {},
+            },
+          },
+        },
+        'react-is': {
+          version: '16.13.1',
+          dependencies: {},
+        },
+      },
+    },
+  },
+};
+
+describe('/packages/:name/:version endpoint', () => {
   let server: Server;
   let port: number;
+  let app: e.Express;
 
   beforeAll(async () => {
-    server = await new Promise((resolve, reject) => {
-      const server = createApp().listen(0, () => {
-        const addr = server.address();
-        if (addr && typeof addr === 'object') {
-          port = addr.port;
-          resolve(server);
-        } else {
-          reject(new Error('Unexpected address ${addr} for server'));
-        }
-      });
-    });
+    app = createApp();
   });
 
-  afterAll(async () => {
-    await new Promise((resolve) => server.close(resolve));
-  });
-
-  it('responds', async () => {
+  it('should reponse with the correct fields', async () => {
     const packageName = 'react';
     const packageVersion = '16.13.0';
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const res: any = await got(
-      `http://localhost:${port}/package/${packageName}/${packageVersion}`,
-    );
-    const json = JSON.parse(res.body);
 
-    expect(res.statusCode).toEqual(200);
-    expect(json.name).toEqual(packageName);
-    expect(json.version).toEqual(packageVersion);
-    expect(json.dependencies).toEqual({
-      'loose-envify': {
-        version: '1.4.0',
-        dependencies: {
-          'js-tokens': {
-            version: '4.0.0',
-            dependencies: {},
-          },
-        },
-      },
-      'object-assign': {
-        version: '4.1.1',
-        dependencies: {},
-      },
-      'prop-types': {
-        version: '15.8.0',
-        dependencies: {
-          'object-assign': {
-            version: '4.1.1',
-            dependencies: {},
-          },
-          'loose-envify': {
-            version: '1.4.0',
-            dependencies: {
-              'js-tokens': {
-                version: '4.0.0',
-                dependencies: {},
-              },
-            },
-          },
-          'react-is': {
-            version: '16.13.1',
-            dependencies: {},
-          },
-        },
-      },
+
+    (got as Function as jest.Mock<any, any>).mockReturnValue({
+      json: jest.fn(() => {
+        const url = (got as Function as jest.Mock<any, any>).mock.lastCall[0];
+        const name = url.split('/').at(-1);
+        return mockedNPMPackages[name];
+      }),
+      statusCode: 200,
+      status: 200,
     });
+
+    const response = await request(app).get(
+      `/api/v1/packages/${packageName}/${packageVersion}`,
+    );
+
+    expect(got).toBeCalledWith(`https://registry.npmjs.org/${packageName}`);
+
+    expect(response.status).toEqual(200);
+
+    // expect(response.headers['content-Type']).toMatch(/json/)
+    expect(response.headers['content-type']).toMatch(/json/);
+    expect(response.body.dependencies).toEqual(mockedResponse.dependencies),
+      expect(response.body.name).toEqual(packageName);
+    expect(response.body.version).toEqual(packageVersion);
   });
 });
