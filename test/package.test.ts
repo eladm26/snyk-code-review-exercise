@@ -52,8 +52,6 @@ const mockedResponse = {
 };
 
 describe('/packages/:name/:version endpoint', () => {
-  let server: Server;
-  let port: number;
   let app: e.Express;
 
   beforeAll(async () => {
@@ -63,8 +61,6 @@ describe('/packages/:name/:version endpoint', () => {
   it('should reponse with the correct fields', async () => {
     const packageName = 'react';
     const packageVersion = '16.13.0';
-
-
 
     (got as Function as jest.Mock<any, any>).mockReturnValue({
       json: jest.fn(() => {
@@ -87,7 +83,7 @@ describe('/packages/:name/:version endpoint', () => {
     // expect(response.headers['content-Type']).toMatch(/json/)
     expect(response.headers['content-type']).toMatch(/json/);
     expect(response.body.dependencies).toEqual(mockedResponse.dependencies),
-      expect(response.body.name).toEqual(packageName);
+    expect(response.body.name).toEqual(packageName);
     expect(response.body.version).toEqual(packageVersion);
   });
 });

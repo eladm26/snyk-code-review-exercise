@@ -13,11 +13,6 @@ export function createApp(): express.Express {
 
   app.use('/api/v1/packages', packageRouter);
 
-  app.use('/api/v1/hello', (req, res) => {
-    console.log('hello');
-    res.status(StatusCodes.OK).json({});
-  });
-
   app.use('*', (req, res) => {
     res.status(StatusCodes.NOT_FOUND).json({ msg: 'not found' });
   });

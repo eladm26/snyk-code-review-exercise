@@ -1,0 +1,7 @@
+1. express project structure
+2. error handler middleware
+3. set server to fixed port using dotenv
+4. chnaged controllers from sync to async for performance
+5. rate limiting for DDOS protection
+6. memoization
+7. switched tests to use supertest instead of and actuasl http server, using supertest (had to upgrade jest)

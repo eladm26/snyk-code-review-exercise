@@ -1,4 +1,4 @@
-import { NextFunction, RequestHandler } from 'express';
+import { RequestHandler } from 'express';
 import { maxSatisfying } from 'semver';
 import got from 'got';
 import { NPMPackage } from '../utils/types';
