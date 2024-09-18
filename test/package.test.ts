@@ -7,49 +7,13 @@ import request from 'supertest';
 import e from 'express';
 import got from 'got';
 import { NPMPackage } from '../src/utils/types';
-import { mockedNPMPackages } from './mock-data/packages-data';
+import {
+  mockedNPMPackages,
+  reactMockedResponse,
+} from './mock-data/packages-data';
+import { StatusCodes } from 'http-status-codes';
 
 jest.mock('got');
-
-const mockedResponse = {
-  dependencies: {
-    'loose-envify': {
-      version: '1.4.0',
-      dependencies: {
-        'js-tokens': {
-          version: '4.0.0',
-          dependencies: {},
-        },
-      },
-    },
-    'object-assign': {
-      version: '4.1.1',
-      dependencies: {},
-    },
-    'prop-types': {
-      version: '15.8.1',
-      dependencies: {
-        'object-assign': {
-          version: '4.1.1',
-          dependencies: {},
-        },
-        'loose-envify': {
-          version: '1.4.0',
-          dependencies: {
-            'js-tokens': {
-              version: '4.0.0',
-              dependencies: {},
-            },
-          },
-        },
-        'react-is': {
-          version: '16.13.1',
-          dependencies: {},
-        },
-      },
-    },
-  },
-};
 
 describe('/packages/:name/:version endpoint', () => {
   let app: e.Express;
@@ -82,8 +46,21 @@ describe('/packages/:name/:version endpoint', () => {
 
     // expect(response.headers['content-Type']).toMatch(/json/)
     expect(response.headers['content-type']).toMatch(/json/);
-    expect(response.body.dependencies).toEqual(mockedResponse.dependencies),
-    expect(response.body.name).toEqual(packageName);
+    expect(response.body.dependencies).toEqual(
+      reactMockedResponse.dependencies,
+    ),
+      expect(response.body.name).toEqual(packageName);
     expect(response.body.version).toEqual(packageVersion);
+  });
+
+  it('should fail on version validator', async () => {
+    const response = await request(app).get(`/api/v1/packages/react/2.`);
+    expect(response.status).toEqual(StatusCodes.BAD_REQUEST);
+    expect(response.body.msg).toEqual('invalid package semver version');
+  });
+
+  it('should return not found', async () => {
+    const response = await request(app).get(`/api/v1/nowhere/react/16.13.10`);
+    expect(response.status).toEqual(StatusCodes.NOT_FOUND);
   });
 });
