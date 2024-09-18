@@ -6,8 +6,12 @@ import errorHandlerMiddleware from './middleware/errorHandlerMiddleware';
 
 import express from 'express';
 
+import morgan from "morgan"
+
 export function createApp(): express.Express {
   const app = express();
+
+  app.use(morgan('tiny'));
 
   app.use(express.json());
 

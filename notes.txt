@@ -6,3 +6,6 @@
 6. memoization
 7. route validators
 8. switched tests to use supertest instead of and actuasl http server, using supertest (had to upgrade jest)
+
+PORT=3000
+REGISTRY_URL="https://registry.npmjs.org"
